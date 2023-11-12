@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kombinierte parametrisierte Flächen</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        .canvas-container { display: flex; flex-direction: column; align-items: center; }
+        .formula { font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body>
+    <div class="canvas-container">
+        <canvas id="myCanvas1" width="800" height="1500"></canvas>
+        <p class="formula">
+            Fläche 1:<br>
+            x = (2 * sin(3u) / (2 + cos(v)))<br>
+            y = (2 * (sin(u) + 2 * sin(2 * u)) / (2 + cos(v + 2 * PI / 3)))<br>
+            z = ((cos(u) - 2 * cos(2 * u)) * (2 + cos(v)) * (2 + cos(v + 2 * PI / 3))) / 4
+        </p>
+
+        <canvas id="myCanvas2" width="1200" height="1200"></canvas>
+        <p class="formula">
+            Fläche 2:<br>
+            a = 2, b = 1, c = 3<br>
+            x = (a * (sin(u) + sin(v))) + (b * sin(2 * u))<br>
+            y = (a * (cos(u) - cos(v))) + (b * sin(2 * v))<br>
+            z = c * sin(3 * u)
+        </p>
+    </div>
+    <script>
+        function getRandomColor() {
+            const letters = "0123456789ABCDEF";
+            let color = "#";
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function drawParametricSurface1() {
+            const canvas = document.getElementById("myCanvas1");
+            const ctx = canvas.getContext("2d");
+
+            const uMin = -Math.PI;
+            const uMax = Math.PI;
+            const vMin = -Math.PI;
+            const vMax = Math.PI;
+            const uSegments = 100;
+            const vSegments = 100;
+
+            function parametricSurface(u, v) {
+                const x = (2 * Math.sin(3 * u) / (2 + Math.cos(v)));
+                const y = (2 * (Math.sin(u) + 2 * Math.sin(2 * u)) / (2 + Math.cos(v + 2 * Math.PI / 3)));
+                const z = ((Math.cos(u) - 2 * Math.cos(2 * u)) * (2 + Math.cos(v)) * (2 + Math.cos(v + 2 * Math.PI / 3))) / 4;
+
+                return {
+                    x: x,
+                    y: y,
+                    z: z
+                };
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const scaleFactor = Math.min(canvas.width, canvas.height) / 8;
+
+            for (let i = 0; i < uSegments; i++) {
+                for (let j = 0; j < vSegments; j++) {
+                    const u1 = uMin + (uMax - uMin) * (i / uSegments);
+                    const u2 = uMin + (uMax - uMin) * ((i + 1) / uSegments);
+                    const v1 = vMin + (vMax - vMin) * (j / vSegments);
+                    const v2 = vMin + (vMax - vMin) * ((j + 1) / vSegments);
+
+                    const p1 = parametricSurface(u1, v1);
+                    const p2 = parametricSurface(u1, v2);
+                    const p3 = parametricSurface(u2, v2);
+                    const p4 = parametricSurface(u2, v1);
+
+                    ctx.beginPath();
+                    ctx.moveTo((p1.x * scaleFactor) + canvas.width / 2, (-p1.y * scaleFactor) + canvas.height / 2);
+                    ctx.lineTo((p2.x * scaleFactor) + canvas.width / 2, (-p2.y * scaleFactor) + canvas.height / 2);
+                    ctx.lineTo((p3.x * scaleFactor) + canvas.width / 2, (-p3.y * scaleFactor) + canvas.height / 2);
+                    ctx.lineTo((p4.x * scaleFactor) + canvas.width / 2, (-p4.y * scaleFactor) + canvas.height / 2);
+                    ctx.closePath();
+
+                    const gradient = ctx.createLinearGradient(
+                        (p1.x * scaleFactor) + canvas.width / 2,
+                        (-p1.y * scaleFactor) + canvas.height / 2,
+                        (p3.x * scaleFactor) + canvas.width / 2,
+                        (-p3.y * scaleFactor) + canvas.height / 2
+                    );
+                    gradient.addColorStop(0, getRandomColor());
+                    gradient.addColorStop(1, getRandomColor());
+
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.strokeStyle = "#000";
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function drawParametricSurface2() {
+            const canvas = document.getElementById("myCanvas2");
+            const ctx = canvas.getContext("2d");
+
+            const uMin = -Math.PI;
+            const uMax = Math.PI;
+            const vMin = -Math.PI;
+            const vMax = Math.PI;
+            const uSegments = 200;
+            const vSegments = 200;
+
+            function parametricSurface(u, v) {
+                const a = 2;
+                const b = 1;
+                const c = 3;
+                const x = (a * (Math.sin(u) + Math.sin(v))) + (b * Math.sin(2 * u));
+                const y = (a * (Math.cos(u) - Math.cos(v))) + (b * Math.sin(2 * v));
+                const z = c * Math.sin(3 * u);
+
+                return {
+                    x: x,
+                    y: y,
+                    z: z
+                };
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const scaleFactor = Math.min(canvas.width, canvas.height) / 16;
+
+            for (let i = 0; i < uSegments; i++) {
+                for (let j = 0; j < vSegments; j++) {
+                    const u1 = uMin + (uMax - uMin) * (i / uSegments);
+                    const u2 = uMin + (uMax - uMin) * ((i + 1) / uSegments);
+                    const v1 = vMin + (vMax - vMin) * (j / vSegments);
+                    const v2 = vMin + (vMax - vMin) * ((j + 1) / vSegments);
+
+                    const p1 = parametricSurface(u1, v1);
+                    const p2 = parametricSurface(u1, v2);
+                    const p3 = parametricSurface(u2, v2);
+                    const p4 = parametricSurface(u2, v1);
+
+                    ctx.beginPath();
+                    ctx.moveTo((p1.x * scaleFactor) + canvas.width / 2, (-p1.y * scaleFactor) + canvas.height / 2);
+                    ctx.lineTo((p2.x * scaleFactor) + canvas.width / 2, (-p2.y * scaleFactor) + canvas.height / 2);
+                    ctx.lineTo((p3.x * scaleFactor) + canvas.width / 2, (-p3.y * scaleFactor) + canvas.height / 2);
+                    ctx.lineTo((p4.x * scaleFactor) + canvas.width / 2, (-p4.y * scaleFactor) + canvas.height / 2);
+                    ctx.closePath();
+
+                    const gradient = ctx.createLinearGradient(
+                        (p1.x * scaleFactor) + canvas.width / 2,
+                        (-p1.y * scaleFactor) + canvas.height / 2,
+                        (p3.x * scaleFactor) + canvas.width / 2,
+                        (-p3.y * scaleFactor) + canvas.height / 2
+                    );
+                    gradient.addColorStop(0, "cyan");
+                    gradient.addColorStop(1, "blue");
+
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.strokeStyle = "#000";
+                    ctx.stroke();
+                }
+            }
+        }
+
+        drawParametricSurface1();
+        drawParametricSurface2();
+    </script>
+</body>
+</html>
